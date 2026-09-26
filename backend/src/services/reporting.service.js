@@ -13,7 +13,15 @@ export async function listStockMoves(query = {}) {
 }
 
 export async function getKpis() {
-  const query = `SELECT (SELECT COALESCE(SUM(quantity), 0) FROM product_stock) AS total_products_in_stock, (SELECT COUNT(*) FROM (SELECT p.id, COALESCE(SUM(ps.quantity), 0) AS total, rr.min_qty FROM products p LEFT JOIN product_stock ps ON ps.product_id = p.id LEFT JOIN reorder_rules rr ON rr.product_id = p.id GROUP BY p.id, rr.min_qty HAVING COALESCE(SUM(ps.quantity), 0) > 0 AND rr.min_qty IS NOT NULL AND COALESCE(SUM(ps.quantity), 0) <= rr.min_qty) low) AS low_stock_items, (SELECT COUNT(*) FROM (SELECT p.id FROM products p LEFT JOIN product_stock ps ON ps.product_id = p.id GROUP BY p.id HAVING COALESCE(SUM(ps.quantity), 0) <= 0) out) AS out_of_stock_items, (SELECT COUNT(*) FROM receipts WHERE status NOT IN ('DONE', 'CANCELLED')) AS pending_receipts, (SELECT COUNT(*) FROM delivery_orders WHERE status NOT IN ('DONE', 'CANCELLED')) AS pending_deliveries, (SELECT COUNT(*) FROM internal_transfers WHERE status NOT IN ('DONE', 'CANCELLED')) AS internal_transfers_scheduled`;
+  const query = `
+    SELECT 
+      (SELECT COUNT(DISTINCT product_id) FROM product_stock WHERE quantity > 0) AS total_products_in_stock, 
+      (SELECT COUNT(*) FROM (SELECT p.id, COALESCE(SUM(ps.quantity), 0) AS total, rr.min_qty FROM products p LEFT JOIN product_stock ps ON ps.product_id = p.id LEFT JOIN reorder_rules rr ON rr.product_id = p.id GROUP BY p.id, rr.min_qty HAVING COALESCE(SUM(ps.quantity), 0) > 0 AND rr.min_qty IS NOT NULL AND COALESCE(SUM(ps.quantity), 0) <= rr.min_qty) low) AS low_stock_items, 
+      (SELECT COUNT(*) FROM (SELECT p.id FROM products p LEFT JOIN product_stock ps ON ps.product_id = p.id GROUP BY p.id HAVING COALESCE(SUM(ps.quantity), 0) <= 0) out) AS out_of_stock_items, 
+      (SELECT COUNT(*) FROM receipts WHERE status NOT IN ('DONE', 'CANCELLED')) AS pending_receipts, 
+      (SELECT COUNT(*) FROM delivery_orders WHERE status NOT IN ('DONE', 'CANCELLED')) AS pending_deliveries, 
+      (SELECT COUNT(*) FROM internal_transfers WHERE status NOT IN ('DONE', 'CANCELLED')) AS internal_transfers_scheduled
+  `;
   return (await pool.query(query)).rows[0];
 }
 
