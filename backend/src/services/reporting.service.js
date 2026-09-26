@@ -3,13 +3,37 @@ import { pool } from '../config/db.js';
 export async function listStockMoves(query = {}) {
   const values = [];
   const where = [];
+
   if (query.productId) { values.push(query.productId); where.push(`sm.product_id = $${values.length}`); }
   if (query.locationId) { values.push(query.locationId); where.push(`(sm.from_location_id = $${values.length} OR sm.to_location_id = $${values.length})`); }
   if (query.type) { values.push(query.type); where.push(`sm.move_type = $${values.length}`); }
   if (query.from) { values.push(query.from); where.push(`sm.created_at >= $${values.length}`); }
   if (query.to) { values.push(query.to); where.push(`sm.created_at <= $${values.length}`); }
+
   const clause = where.length ? `WHERE ${where.join(' AND ')}` : '';
-  return (await pool.query(`SELECT sm.*, p.name AS product_name, p.sku, fl.name AS from_location_name, tl.name AS to_location_name FROM stock_moves sm JOIN products p ON p.id = sm.product_id LEFT JOIN locations fl ON fl.id = sm.from_location_id LEFT JOIN locations tl ON tl.id = sm.to_location_id ${clause} ORDER BY sm.created_at DESC`, values)).rows;
+
+  const sql = `
+    SELECT 
+      sm.*, 
+      p.name AS product_name, 
+      p.sku, 
+      fl.name AS from_location_name, 
+      tl.name AS to_location_name,
+      COALESCE(
+        (SELECT reference_no FROM receipts WHERE id = sm.reference_id),
+        (SELECT reference_no FROM delivery_orders WHERE id = sm.reference_id),
+        (SELECT reference_no FROM internal_transfers WHERE id = sm.reference_id),
+        (SELECT reference_no FROM stock_adjustments WHERE id = sm.reference_id)
+      ) AS document_reference
+    FROM stock_moves sm 
+    JOIN products p ON p.id = sm.product_id 
+    LEFT JOIN locations fl ON fl.id = sm.from_location_id 
+    LEFT JOIN locations tl ON tl.id = sm.to_location_id 
+    ${clause} 
+    ORDER BY sm.created_at DESC
+  `;
+
+  return (await pool.query(sql, values)).rows;
 }
 
 export async function getKpis() {

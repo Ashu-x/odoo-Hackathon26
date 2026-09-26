@@ -1,16 +1,25 @@
-import { ApiError } from '../utils/ApiError.js';
 import { verifyToken } from '../utils/jwt.js';
+import { ApiError } from '../utils/ApiError.js';
+import { pool } from '../config/db.js';
 
-export function requireAuth(req, res, next) {
-  const header = req.headers.authorization;
-  if (!header?.startsWith('Bearer ')) {
-    return next(new ApiError(401, 'Authentication required'));
-  }
-
+export async function requireAuth(req, res, next) {
   try {
-    req.user = verifyToken(header.slice(7));
+    const authHeader = req.headers.authorization;
+    if (!authHeader || !authHeader.startsWith('Bearer ')) {
+      throw new ApiError(401, 'Authentication required');
+    }
+
+    const token = authHeader.split(' ')[1];
+    const payload = verifyToken(token);
+
+    const result = await pool.query('SELECT id, role FROM users WHERE id = $1', [payload.id]);
+    if (!result.rows[0]) {
+      throw new ApiError(401, 'User account no longer exists');
+    }
+
+    req.user = result.rows[0];
     next();
-  } catch {
-    next(new ApiError(401, 'Invalid or expired token'));
+  } catch (error) {
+    next(new ApiError(401, error.message || 'Invalid or expired token'));
   }
 }
