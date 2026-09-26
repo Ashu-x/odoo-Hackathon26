@@ -1,0 +1,69 @@
+# Prompt and local project notes
+*.txt
+*.prompt
+*.instructions.md
+AGENTS.md
+
+# Dependencies
+node_modules/
+**/node_modules/
+
+# Environment and secrets
+.env
+.env.*
+!.env.example
+**/.env
+**/.env.*
+!**/.env.example
+
+# Build output and caches
+dist/
+**/dist/
+build/
+**/build/
+.vite/
+**/.vite/
+.cache/
+**/.cache/
+coverage/
+**/coverage/
+
+# Logs and debug output
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+report.[0-9]*.[0-9]*.[0-9]*.[0-9]*.json
+
+# Local databases and generated data
+*.sqlite
+*.sqlite3
+*.db
+*.tmp
+*.temp
+
+# OS files
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Editor and workspace files
+.vscode/*
+!.vscode/extensions.json
+!.vscode/settings.json
+.idea/
+*.swp
+*.swo
+
+# Test and tool artifacts
+playwright-report/
+test-results/
+.nyc_output/
+
+# Temporary files
+.tmp/
+tmp/
+temp/
+*.bak
+*.orig

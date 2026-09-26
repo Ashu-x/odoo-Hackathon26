@@ -6,6 +6,7 @@ export function useApi(path, fallback = []) {
   useEffect(() => {
     if (!path) return;
     let active = true;
+    setState({ data: fallback, loading: true, error: '' });
     api.get(path).then(data => active && setState({ data, loading: false, error: '' })).catch(error => active && setState({ data: fallback, loading: false, error: error.message }));
     return () => { active = false; };
   }, [path]);

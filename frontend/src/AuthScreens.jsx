@@ -1,15 +1,31 @@
+import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { Check, ShieldCheck } from "lucide-react";
 import { Field, PasswordField } from "./components/Form";
 import { Brand } from "./components/Layout";
+import { api } from "./api/client";
 
 export default function AuthScreens({ mode = "login" }) {
   const isSignup = mode === "signup";
   const navigate = useNavigate();
-  const submit = (event) => {
+  const [form, setForm] = useState({ name: "", email: "", password: "", confirmPassword: "", role: "INVENTORY_MANAGER" });
+  const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
+  const update = (key) => (event) => setForm((current) => ({ ...current, [key]: event.target.value }));
+  const submit = async (event) => {
     event.preventDefault();
-    localStorage.setItem("stocksense_token", "demo-token");
-    navigate("/");
+    setError("");
+    if (isSignup && form.password !== form.confirmPassword) return setError("Passwords do not match.");
+    setLoading(true);
+    try {
+      const data = await api.post(isSignup ? "/api/auth/signup" : "/api/auth/login", isSignup ? { name: form.name, email: form.email, password: form.password, role: form.role } : { email: form.email, password: form.password });
+      localStorage.setItem("stocksense_token", data.token);
+      navigate("/", { replace: true });
+    } catch (requestError) {
+      setError(requestError.message);
+    } finally {
+      setLoading(false);
+    }
   };
   return (
     <div className="auth-page">
@@ -53,16 +69,17 @@ export default function AuthScreens({ mode = "login" }) {
               ? "Set up your StockSense account and invite your operations team when you’re ready."
               : "Log in to continue managing live inventory across your warehouse network."}
           </p>
-          {isSignup && <Field label="Full name" />}
-          <Field label="Work email" type="email" />
+          {isSignup && <Field label="Full name" value={form.name} onChange={update("name")} />}
+          <Field label="Work email" type="email" value={form.email} onChange={update("email")} />
           {isSignup ? (
             <div className="password-pair">
-              <PasswordField label="Password" />
-              <PasswordField label="Confirm password" />
+              <PasswordField label="Password" value={form.password} onChange={update("password")} />
+              <PasswordField label="Confirm password" value={form.confirmPassword} onChange={update("confirmPassword")} />
             </div>
           ) : (
-            <PasswordField label="Password" />
+            <PasswordField label="Password" value={form.password} onChange={update("password")} />
           )}
+          {isSignup && <label className="field"><span>Role</span><select value={form.role} onChange={update("role")}><option value="INVENTORY_MANAGER">Inventory Manager</option><option value="WAREHOUSE_STAFF">Warehouse Staff</option></select></label>}
           {isSignup ? (
             <>
               <div className="password-guidance">
@@ -88,11 +105,11 @@ export default function AuthScreens({ mode = "login" }) {
                 <input type="checkbox" defaultChecked /> Remember me on this
                 device
               </label>
-              <Link to="/forgot-password">Forgot password?</Link>
             </div>
           )}
-          <button className="submit-button">
-            {isSignup ? "Create account" : "Log in"} <span>→</span>
+          {error && <div className="form-error" role="alert">{error}</div>}
+          <button className="submit-button" disabled={loading}>
+            {loading ? "Please wait..." : isSignup ? "Create account" : "Log in"} {!loading && <span>→</span>}
           </button>
           <div className="secure-note">
             <Check size={13} />

@@ -8,11 +8,16 @@ export async function apiRequest(path, options = {}) {
   });
   if (response.status === 401) {
     localStorage.removeItem('stocksense_token');
-    window.location.assign('/login');
+    if (window.location.pathname !== '/login' && window.location.pathname !== '/signup') window.location.assign('/login');
   }
   const body = await response.json().catch(() => ({}));
-  if (!response.ok) throw new Error(body.message || 'Something went wrong.');
-  return body;
+  if (!response.ok) {
+    const error = new Error(body.message || 'Something went wrong.');
+    error.status = response.status;
+    error.details = body.errors;
+    throw error;
+  }
+  return body.data;
 }
 
 export const api = {

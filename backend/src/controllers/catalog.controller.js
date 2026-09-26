@@ -1,0 +1,26 @@
+import { asyncHandler } from '../utils/asyncHandler.js';
+import { sendSuccess } from '../utils/ApiResponse.js';
+import * as service from '../services/catalog.service.js';
+
+export const listCategories = asyncHandler(async (req, res) => sendSuccess(res, await service.listCategories()));
+export const createCategory = asyncHandler(async (req, res) => sendSuccess(res, await service.createCategory(req.body), 'Category created', 201));
+export const updateCategory = asyncHandler(async (req, res) => sendSuccess(res, await service.updateCategory(req.params.id, req.body)));
+export const deleteCategory = asyncHandler(async (req, res) => sendSuccess(res, await service.deleteCategory(req.params.id)));
+export const listProducts = asyncHandler(async (req, res) => sendSuccess(res, await service.listProducts(req.query)));
+export const getProduct = asyncHandler(async (req, res) => sendSuccess(res, await service.getProduct(req.params.id)));
+export const getProductStock = asyncHandler(async (req, res) => sendSuccess(res, await service.getProductStock(req.params.id)));
+export const createProduct = asyncHandler(async (req, res) => sendSuccess(res, await service.createProduct(req.body, req.user.id), 'Product created', 201));
+export const updateProduct = asyncHandler(async (req, res) => sendSuccess(res, await service.updateProduct(req.params.id, req.body)));
+export const deleteProduct = asyncHandler(async (req, res) => sendSuccess(res, await service.deleteProduct(req.params.id)));
+export const listReorderRules = asyncHandler(async (req, res) => sendSuccess(res, await service.listReorderRules()));
+export const createReorderRule = asyncHandler(async (req, res) => sendSuccess(res, await service.createReorderRule(req.body), 'Reorder rule created', 201));
+export const updateReorderRule = asyncHandler(async (req, res) => sendSuccess(res, await service.updateReorderRule(req.params.id, req.body)));
+export const deleteReorderRule = asyncHandler(async (req, res) => sendSuccess(res, await service.deleteReorderRule(req.params.id)));
+export const listWarehouses = asyncHandler(async (req, res) => sendSuccess(res, await service.listWarehouses()));
+export const createWarehouse = asyncHandler(async (req, res) => sendSuccess(res, await service.createWarehouse(req.body), 'Warehouse created', 201));
+export const updateWarehouse = asyncHandler(async (req, res) => sendSuccess(res, await service.updateWarehouse(req.params.id, req.body)));
+export const deleteWarehouse = asyncHandler(async (req, res) => sendSuccess(res, await service.deleteWarehouse(req.params.id)));
+export const listLocations = asyncHandler(async (req, res) => sendSuccess(res, await service.listLocations(req.params.id)));
+export const createLocation = asyncHandler(async (req, res) => sendSuccess(res, await service.createLocation(req.body), 'Location created', 201));
+export const updateLocation = asyncHandler(async (req, res) => sendSuccess(res, await service.updateLocation(req.params.id, req.body)));
+export const deleteLocation = asyncHandler(async (req, res) => sendSuccess(res, await service.deleteLocation(req.params.id)));
