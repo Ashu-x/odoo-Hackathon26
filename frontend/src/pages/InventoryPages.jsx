@@ -282,24 +282,31 @@ export function WarehousePage() {
 }
 
 export function Profile() {
+  const { data: user, loading, error } = useApi("/api/auth/me", {});
+
   return (
     <Page title="My profile" eyebrow="ACCOUNT">
-      <div className="profile-card">
-        <div className="large-avatar">MC</div>
-        <div className="profile-details">
-          <h2>Maya Chen</h2>
-          <p>Inventory Manager</p>
-          <div className="form-grid">
-            <Field label="Full name" value="Maya Chen" />
-            <Field
-              label="Email address"
-              value="maya.chen@northstar.com"
-            />
-            <Field label="Role" value="Inventory Manager" disabled />
+      <DataState loading={loading} error={error}>
+        <div className="profile-card">
+          <div className="large-avatar">
+            {user.name ? user.name.substring(0, 2).toUpperCase() : "US"}
           </div>
-          <button className="primary-button">Save changes</button>
+          <div className="profile-details">
+            <h2>{user.name}</h2>
+            <p>{user.role?.replace('_', ' ')}</p>
+            <div className="form-grid">
+              <Field label="Full name" value={user.name || ""} disabled />
+              <Field
+                label="Email address"
+                value={user.email || ""}
+                disabled
+              />
+              <Field label="Role" value={user.role || ""} disabled />
+            </div>
+            <button className="primary-button" disabled>Save changes</button>
+          </div>
         </div>
-      </div>
+      </DataState>
     </Page>
   );
 }
