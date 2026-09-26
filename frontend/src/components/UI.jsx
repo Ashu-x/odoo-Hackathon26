@@ -48,31 +48,24 @@ export function Status({ children }) {
     </span>
   );
 }
-export function FilterBar() {
+export function FilterBar({ status, onStatusChange, warehouse, onWarehouseChange, warehouses = [] }) {
   return (
     <div className="filter-bar">
       <label className="filter-search">
         <Search size={16} />
         <input placeholder="Search operations..." />
       </label>
-      <select defaultValue="">
-        <option value="">All document types</option>
-        <option>Receipts</option>
-        <option>Delivery Orders</option>
-        <option>Internal Transfers</option>
-        <option>Adjustments</option>
-      </select>
-      <select defaultValue="">
+      <select value={status || ""} onChange={(e) => onStatusChange && onStatusChange(e.target.value)}>
         <option value="">All statuses</option>
-        <option>Waiting</option>
-        <option>Ready</option>
-        <option>Done</option>
-        <option>Cancelled</option>
+        <option value="DRAFT">Draft</option>
+        <option value="WAITING">Waiting</option>
+        <option value="READY">Ready</option>
+        <option value="DONE">Done</option>
+        <option value="CANCELLED">Cancelled</option>
       </select>
-      <select defaultValue="">
+      <select value={warehouse || ""} onChange={(e) => onWarehouseChange && onWarehouseChange(e.target.value)}>
         <option value="">All warehouses</option>
-        <option>Seattle Central</option>
-        <option>Portland Hub</option>
+        {warehouses.map(w => <option key={w.id} value={w.id}>{w.name}</option>)}
       </select>
       <button className="filter-button">
         <SlidersHorizontal size={15} /> Filters
@@ -80,6 +73,7 @@ export function FilterBar() {
     </div>
   );
 }
+
 export function SectionHeading({ title, description, action }) {
   return (
     <div className="section-head">
@@ -97,7 +91,8 @@ export function DataState({ loading, error, empty, children }) {
   if (empty) return <div className="data-state">No records found.</div>;
   return children;
 }
-export function OperationTable({ rows }) {
+
+export function OperationTable({ rows, actionLabel, onAction }) {
   return (
     <div className="table-wrap">
       <table>
@@ -105,7 +100,7 @@ export function OperationTable({ rows }) {
           <tr>
             <th>Document</th>
             <th>Type</th>
-            <th>Product / movement</th>
+            <th>Movement</th>
             <th>Counterparty</th>
             <th>Status</th>
             <th>Updated</th>
@@ -113,21 +108,21 @@ export function OperationTable({ rows }) {
           </tr>
         </thead>
         <tbody>
-          {rows.map((row) => (
-            <tr key={row[0]}>
-              {row.map((cell, index) =>
+          {rows.map((row, i) => (
+            <tr key={row.id || i}>
+              {row.cells.map((cell, index) =>
                 index === 4 ? (
-                  <td key={index}>
-                    <Status>{cell}</Status>
-                  </td>
+                  <td key={index}><Status>{cell}</Status></td>
                 ) : (
-                  <td key={index} className={index === 0 ? "mono" : ""}>
-                    {cell}
-                  </td>
-                ),
+                  <td key={index} className={index === 0 ? "mono" : ""}>{cell}</td>
+                )
               )}
               <td>
-                <button className="row-action">···</button>
+                {onAction && row.cells[4] !== 'DONE' && row.cells[4] !== 'CANCELLED' && (
+                  <button onClick={() => onAction(row.id)} className="text-button">
+                    {actionLabel || "Action"}
+                  </button>
+                )}
               </td>
             </tr>
           ))}
@@ -136,9 +131,25 @@ export function OperationTable({ rows }) {
     </div>
   );
 }
+
+
 export const kpiIcons = {
   alert: CircleAlert,
   package: Package,
   receipt: PackageCheck,
   truck: Truck,
 };
+
+export function Modal({ title, onClose, children }) {
+    return (
+      <div style={{ position: 'fixed', inset: 0, backgroundColor: 'rgba(4, 42, 43, 0.6)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 50 }}>
+        <div style={{ background: '#fff', padding: '24px', borderRadius: '12px', width: '100%', maxWidth: '400px' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '20px' }}>
+            <h3 style={{ margin: 0, fontFamily: 'Plus Jakarta Sans', color: '#173437' }}>{title}</h3>
+            <button onClick={onClose} style={{ color: '#789091' }}>✕</button>
+          </div>
+          {children}
+        </div>
+      </div>
+    );
+  }

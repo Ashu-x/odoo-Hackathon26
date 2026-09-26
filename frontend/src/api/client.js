@@ -14,14 +14,19 @@ async function fetchWithAuth(endpoint, options = {}) {
     headers,
   });
 
+  if (response.status === 401) {
+    localStorage.removeItem('stocksense_token');
+    window.location.href = '/login';
+    return Promise.reject(new Error('Session expired'));
+  }
+
   const payload = await response.json();
 
   if (!response.ok) {
-    // Maps to your backend ApiError structure
     throw new Error(payload.message || 'An error occurred with the request');
   }
 
-  return payload.data; // Strips the { success: true, data: ... } wrapper from ApiResponse.js
+  return payload.data;
 }
 
 export const api = {

@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useApi } from "../hooks/useApi";
 import {
   Bell,
   ChevronDown,
@@ -65,6 +66,10 @@ export function AppShell({ children }) {
   const location = useLocation();
   const navigate = useNavigate();
 
+  // Fetch the current user
+  const { data: user } = useApi("/api/auth/me", {});
+  const initials = user.name ? user.name.substring(0, 2).toUpperCase() : "--";
+
   return (
     <div className="app-shell">
       <aside className={open ? "sidebar open" : "sidebar"}>
@@ -97,10 +102,10 @@ export function AppShell({ children }) {
         </nav>
         <div className="profile-menu">
           <div className="profile-head">
-            <div className="avatar">MC</div>
+            <div className="avatar">{initials}</div>
             <div>
-              <strong>Maya Chen</strong>
-              <small>Inventory Manager</small>
+              <strong>{user.name || "Loading..."}</strong>
+              <small>{user.role?.replace('_', ' ') || ""}</small>
             </div>
             <ChevronDown size={14} />
           </div>
@@ -139,7 +144,7 @@ export function AppShell({ children }) {
               <Bell size={17} />
               <em />
             </button>
-            <div className="top-avatar">MC</div>
+            <div className="top-avatar">{initials}</div>
           </div>
         </header>
         {children}
